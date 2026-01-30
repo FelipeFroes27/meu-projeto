@@ -1,40 +1,62 @@
-# app.py
+# formularios.py
 import streamlit as st
-from login import login
-from formularios import formulario_principal, FORMULARIOS
-from utils import conecta_planilha
+from utils import salvar_resposta, get_data_atual, conecta_planilha
 
-# Configuração de secrets e planilha
-GOOGLE_SECRET = st.secrets["google_credentials"]
-NOME_PLANILHA = "Banco de dados"
+# Campos do formulário 1
+CAMPOS_FORM1 = [
+    "Cliente", "Data", "Raiva", "Quem", "Pressão", "Inferioridade", "Observações"
+]
 
-# Inicializa sessão
-if "usuario" not in st.session_state:
-    st.session_state["usuario"] = None
-    st.session_state["tipo"] = None
-    st.session_state["formulario_selecionado"] = None
+def formulario_principal(secret, nome_planilha):
+    st.header("Formulário Psicológico")
+    
+    cliente = st.session_state.get("usuario", "")
+    data_atual = get_data_atual()
+    
+    raiva = st.radio("Sentiu raiva de alguém?", ["Não", "Sim"])
+    quem = st.text_input("Quem?", "") if raiva == "Sim" else ""
+    
+    pressao = st.radio("Sentiu pressão?", ["Não", "Sim"])
+    inferioridade = st.radio("Sentiu-se inferior?", ["Não", "Sim"])
+    
+    observacoes = st.text_area("Observações")
+    
+    if st.button("Enviar"):
+        planilha = conecta_planilha(secret, nome_planilha)
+        dados = {
+            "Cliente": cliente,
+            "Data": data_atual,
+            "Raiva": raiva,
+            "Quem": quem,
+            "Pressão": pressao,
+            "Inferioridade": inferioridade,
+            "Observações": observacoes
+        }
+        salvar_resposta(planilha, "FORMULÁRIO 1", dados, CAMPOS_FORM1)
+        st.success("Resposta enviada com sucesso!")
 
-# Tela de login
-if st.session_state["usuario"] is None:
-    login(GOOGLE_SECRET, NOME_PLANILHA)
-else:
-    # Sidebar com info do usuário
-    st.sidebar.write(f"Usuário: {st.session_state['usuario']}")
-    st.sidebar.write(f"Tipo: {st.session_state['tipo']}")
+# Aqui você pode adicionar mais formulários, por exemplo:
+def formulario_secundario(secret, nome_planilha):
+    st.header("Formulário Secundário")
+    
+    cliente = st.session_state.get("usuario", "")
+    data_atual = get_data_atual()
+    
+    resposta = st.text_input("Digite algo para o formulário secundário:")
+    
+    if st.button("Enviar"):
+        planilha = conecta_planilha(secret, nome_planilha)
+        dados = {
+            "Cliente": cliente,
+            "Data": data_atual,
+            "Resposta": resposta
+        }
+        salvar_resposta(planilha, "FORMULARIO_SECUNDARIO", dados, ["Cliente", "Data", "Resposta"])
+        st.success("Resposta enviada com sucesso!")
 
-    # Abas principais
-    aba = st.radio("Navegação", ["Formulários/Testes"])
-
-    if aba == "Formulários/Testes":
-        st.header("Escolha um formulário para preencher:")
-
-        # Botões para cada formulário
-        for nome_formulario, func_formulario in FORMULARIOS.items():
-            if st.button(nome_formulario):
-                st.session_state["formulario_selecionado"] = nome_formulario
-
-        # Se algum formulário foi selecionado, chama a função correspondente
-        if st.session_state["formulario_selecionado"]:
-            func = FORMULARIOS[st.session_state["formulario_selecionado"]]
-            func(GOOGLE_SECRET, NOME_PLANILHA)
+# Dicionário de formulários
+FORMULARIOS = {
+    "Formulário Psicológico": formulario_principal,
+    "Formulário Secundário": formulario_secundario
+}
 
