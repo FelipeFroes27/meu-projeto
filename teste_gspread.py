@@ -8,5 +8,5 @@ scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapi
 creds = Credentials.from_service_account_info(secret, scopes=scopes)
 client = gspread.authorize(creds)
 
-planilha = client.open("NOME_PLANILHA")  # coloque exatamente o nome da planilha
+planilha = client.open("Banco de dados")  # coloque exatamente o nome da planilha
 print(planilha.sheet1.get_all_records())
