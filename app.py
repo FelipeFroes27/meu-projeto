@@ -1,7 +1,6 @@
-# app.py
 import streamlit as st
 from login import login
-from formularios import formulario_principal, FORMULARIOS
+from formularios import FORMULARIOS
 from utils import conecta_planilha
 
 # Configuração de secrets e planilha
@@ -21,19 +20,19 @@ else:
     # Sidebar com info do usuário
     st.sidebar.write(f"Usuário: {st.session_state['usuario']}")
     st.sidebar.write(f"Tipo: {st.session_state['tipo']}")
+    st.sidebar.markdown("---")
 
-    # Abas principais
-    aba = st.radio("Navegação", ["Formulários/Testes"])
+    # Sidebar com "abas" de formulários
+    st.sidebar.write("### Formulários/Testes")
+    for nome_formulario, func_formulario in FORMULARIOS.items():
+        if st.sidebar.button(nome_formulario):
+            st.session_state["formulario_selecionado"] = nome_formulario
 
-    if aba == "Formulários/Testes":
-        st.header("Escolha um formulário para preencher:")
+    # Corpo da página: exibe formulário selecionado
+    if st.session_state["formulario_selecionado"]:
+        st.header(st.session_state["formulario_selecionado"])
+        func = FORMULARIOS[st.session_state["formulario_selecionado"]]
+        func(GOOGLE_SECRET, NOME_PLANILHA)
+    else:
+        st.write("Selecione um formulário na aba à esquerda para começar.")
 
-        # Botões para cada formulário
-        for nome_formulario, func_formulario in FORMULARIOS.items():
-            if st.button(nome_formulario):
-                st.session_state["formulario_selecionado"] = nome_formulario
-
-        # Se algum formulário foi selecionado, chama a função correspondente
-        if st.session_state["formulario_selecionado"]:
-            func = FORMULARIOS[st.session_state["formulario_selecionado"]]
-            func(GOOGLE_SECRET, NOME_PLANILHA)
