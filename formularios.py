@@ -51,7 +51,7 @@ def formulario_secundario(secret, nome_planilha):
             "Data": data_atual,
             "Resposta": resposta
         }
-        salvar_resposta(planilha, "FORMULARIO_SECUNDARIO", dados, ["Cliente", "Data", "Resposta"])
+        salvar_resposta(planilha, "FORMULÁRIO 2", dados, ["Cliente", "Data", "Resposta"])
         st.success("Resposta enviada com sucesso!")
 
 # Dicionário de formulários
@@ -59,4 +59,5 @@ FORMULARIOS = {
     "Formulário Psicológico": formulario_principal,
     "Formulário Secundário": formulario_secundario
 }
+
 
