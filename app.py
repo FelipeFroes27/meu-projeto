@@ -1,3 +1,4 @@
+# app.py
 import streamlit as st
 from login import login
 from formularios import FORMULARIOS
@@ -28,11 +29,19 @@ else:
         if st.sidebar.button(nome_formulario):
             st.session_state["formulario_selecionado"] = nome_formulario
 
-    # Corpo da página: exibe formulário selecionado
+    # Nova aba Visualizar Respostas apenas para usuários master
+    if st.session_state["tipo"] == "master":
+        if st.sidebar.button("Visualizar Respostas"):
+            st.session_state["formulario_selecionado"] = "Visualizar Respostas"
+
+    # Corpo da página: exibe formulário selecionado ou aba de visualização
     if st.session_state["formulario_selecionado"]:
-        st.header(st.session_state["formulario_selecionado"])
-        func = FORMULARIOS[st.session_state["formulario_selecionado"]]
-        func(GOOGLE_SECRET, NOME_PLANILHA)
+        if st.session_state["formulario_selecionado"] == "Visualizar Respostas":
+            st.header("Visualizar Respostas")
+            st.write("Aqui serão exibidas todas as respostas (em breve).")
+        else:
+            st.header(st.session_state["formulario_selecionado"])
+            func = FORMULARIOS[st.session_state["formulario_selecionado"]]
+            func(GOOGLE_SECRET, NOME_PLANILHA)
     else:
         st.write("Selecione um formulário na aba à esquerda para começar.")
-
