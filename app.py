@@ -13,7 +13,7 @@ st.set_page_config(page_title="Sistema de Consultoria", layout="wide")
 # ===============================
 # Substitua pelo seu st.secrets ou dicionário de credenciais
 GOOGLE_SECRET = st.secrets["google_credentials"]
-NOME_PLANILHA = "clientes_formulario"
+NOME_PLANILHA = "Banco de dados"
 
 # ===============================
 # NAVEGAÇÃO
@@ -29,5 +29,6 @@ if st.session_state.get("logado"):
         formulario_psicologico(GOOGLE_SECRET, NOME_PLANILHA)
     elif opcao == "Logout":
         logout()
+
 
 
