@@ -1,6 +1,6 @@
 # formularios.py
 import streamlit as st
-from utils import salvar_resposta, get_data_atual
+from utils import salvar_resposta, get_data_atual, conecta_planilha
 
 # Campos do formulário
 CAMPOS = [
@@ -35,5 +35,6 @@ def formulario_principal(secret, nome_planilha):
         }
         salvar_resposta(planilha, "FORMULÁRIO 1", dados, CAMPOS)
         st.success("Resposta enviada com sucesso!")
+
 
 
