@@ -1,65 +1,109 @@
 import streamlit as st
-from utils import salvar_resposta, get_data_atual, conecta_planilha
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
 
-CAMPOS_PADRAO = ["ID", "Nome", "Data", "Observação"]
+# ===============================
+# CONFIGURAÇÕES
+# ===============================
 
-def obter_id_nome(planilha, usuario_logado):
-    """Busca o ID e nome do cliente na aba CLIENTES pelo login."""
+NOME_PLANILHA = "Banco de dados"
+ABA_CLIENTES = "CLIENTES"
+ABA_FORMULARIO = "FORMULÁRIO 1"
+
+CAMPOS = [
+    "id_usuario",
+    "nome",
+    "data",
+    "observacao"
+]
+
+# ===============================
+# CONEXÃO GOOGLE SHEETS
+# ===============================
+
+def conecta_planilha():
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    creds = Credentials.from_service_account_info(
+        st.secrets["google_credentials"],
+        scopes=scopes
+    )
+    client = gspread.authorize(creds)
+    return client.open(NOME_PLANILHA)
+
+# ===============================
+# UTILIDADES
+# ===============================
+
+def data_atual():
+    return datetime.now().strftime("%d/%m/%Y")
+
+def obter_cliente(planilha, usuario_logado):
+    aba = planilha.worksheet(ABA_CLIENTES)
+    registros = aba.get_all_records()
+
+    usuario_logado = usuario_logado.strip().lower()
+
+    for linha in registros:
+        id_usuario = str(linha.get("id usuario", "")).strip().lower()
+        if id_usuario == usuario_logado:
+            return {
+                "id_usuario": linha.get("id usuario", ""),
+                "nome": linha.get("nome", "")
+            }
+    return None
+
+def salvar_resposta(planilha, dados):
     try:
-        aba = planilha.worksheet("CLIENTES")
-        registros = aba.get_all_records()
-        for linha in registros:
-            # Normaliza para evitar problemas com maiúsculas/minúsculas
-            if str(linha.get("id_usuario", "")).strip().lower() == usuario_logado.strip().lower():
-                return linha.get("id_cliente", ""), linha.get("nome", "")
-    except Exception as e:
-        st.error(f"Erro ao buscar ID/Nome: {e}")
-    return "", ""  # caso não encontre
+        sheet = planilha.worksheet(ABA_FORMULARIO)
+    except gspread.WorksheetNotFound:
+        sheet = planilha.add_worksheet(
+            title=ABA_FORMULARIO,
+            rows="100",
+            cols=str(len(CAMPOS))
+        )
 
-# Formulário genérico para reutilização
-def formulario_generico(secret, nome_planilha, aba_formulario, titulo):
-    st.subheader(titulo)
-    planilha = conecta_planilha(secret, nome_planilha)
-    usuario_logado = st.session_state.get("usuario", "")
+    # Cria cabeçalho se não existir
+    if sheet.row_values(1) == []:
+        sheet.append_row(CAMPOS)
 
-    cliente_id, nome_cliente = obter_id_nome(planilha, usuario_logado)
+    linha = [dados.get(campo, "") for campo in CAMPOS]
+    sheet.append_row(linha)
 
-    if not cliente_id or not nome_cliente:
-        st.warning("Não foi possível identificar o ID ou Nome do cliente. Verifique a aba CLIENTES.")
+# ===============================
+# FORMULÁRIO
+# ===============================
+
+def formulario_1(usuario_logado):
+    st.header("Formulário 1")
+
+    planilha = conecta_planilha()
+
+    cliente = obter_cliente(planilha, usuario_logado)
+
+    if not cliente:
+        st.error("Cliente não encontrado na aba CLIENTES.")
         return
 
-    st.text(f"ID do cliente: {cliente_id}")
-    st.text(f"Nome do cliente: {nome_cliente}")
+    st.text(f"ID do usuário: {cliente['id_usuario']}")
+    st.text(f"Nome do cliente: {cliente['nome']}")
 
-    data_atual = get_data_atual()
     observacao = st.text_area("Observação")
 
-    if st.button(f"Enviar {titulo}"):
+    if st.button("Enviar"):
         dados = {
-            "ID": cliente_id,
-            "Nome": nome_cliente,
-            "Data": data_atual,
-            "Observação": observacao
+            "id_usuario": cliente["id_usuario"],
+            "nome": cliente["nome"],
+            "data": data_atual(),
+            "observacao": observacao
         }
-        salvar_resposta(planilha, aba_formulario, dados, CAMPOS_PADRAO)
-        st.success(f"{titulo} enviado com sucesso!")
 
-# Três formulários padrão
-def formulario_1(secret, nome_planilha):
-    formulario_generico(secret, nome_planilha, "FORMULÁRIO 1", "Formulário 1")
+        salvar_resposta(planilha, dados)
+        st.success("Formulário enviado com sucesso!")
 
-def formulario_2(secret, nome_planilha):
-    formulario_generico(secret, nome_planilha, "FORMULÁRIO 2", "Formulário 2")
-
-def formulario_3(secret, nome_planilha):
-    formulario_generico(secret, nome_planilha, "FORMULÁRIO 3", "Formulário 3")
-
-# Dicionário de formulários para o app.py
-FORMULARIOS = {
-    "Formulário 1": formulario_1,
-    "Formulário 2": formulario_2,
-    "Formulário 3": formulario_3
-}
 
 
 
