@@ -31,6 +31,7 @@ else:
 
     # Nova aba Visualizar Respostas apenas para usuários master
     if st.session_state["tipo"] == "master":
+        st.sidebar.write("### Respostas")
         if st.sidebar.button("Visualizar Respostas"):
             st.session_state["formulario_selecionado"] = "Visualizar Respostas"
 
@@ -45,3 +46,4 @@ else:
             func(GOOGLE_SECRET, NOME_PLANILHA)
     else:
         st.write("Selecione um formulário na aba à esquerda para começar.")
+
