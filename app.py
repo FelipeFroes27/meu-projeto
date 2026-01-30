@@ -1,30 +1,33 @@
-# ===============================
-# app.py
-# Ponto de entrada do app
-# ===============================
-
 import streamlit as st
-from login import tela_login
-from formularios import tela_cliente, tela_formulario_f1
+from login import login, logout
+from formularios import formulario_psicologico
+from utils import conecta_planilha
+
+# ===============================
+# CONFIGURAÇÕES GERAIS
+# ===============================
+st.set_page_config(page_title="Sistema de Consultoria", layout="wide")
+
+# ===============================
+# CREDENCIAIS E PLANILHA
+# ===============================
+# Substitua pelo seu st.secrets ou dicionário de credenciais
+GOOGLE_SECRET = st.secrets["google_credentials"]
+NOME_PLANILHA = "clientes_formulario"
 
 # ===============================
 # NAVEGAÇÃO
 # ===============================
 
-if "logado" not in st.session_state:
-    st.session_state["logado"] = False
+login(GOOGLE_SECRET, NOME_PLANILHA)
 
-if "pagina" not in st.session_state:
-    st.session_state["pagina"] = "login"
+if st.session_state.get("logado"):
+    st.sidebar.title("Menu")
+    opcao = st.sidebar.radio("Escolha a tela:", ["Formulário", "Logout"])
 
-if not st.session_state["logado"]:
-    tela_login()
-else:
-    if st.session_state["tipo"] == "cliente":
-        if st.session_state["pagina"] == "home":
-            tela_cliente()
-        elif st.session_state["pagina"] == "formulario":
-            if st.session_state.get("formulario_atual") == "F1":
-                tela_formulario_f1()
+    if opcao == "Formulário":
+        formulario_psicologico(GOOGLE_SECRET, NOME_PLANILHA)
+    elif opcao == "Logout":
+        logout()
 
 
