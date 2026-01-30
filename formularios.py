@@ -1,63 +1,70 @@
-# formularios.py
 import streamlit as st
 from utils import salvar_resposta, get_data_atual, conecta_planilha
 
-# Campos do formulário 1
-CAMPOS_FORM1 = [
-    "Cliente", "Data", "Raiva", "Quem", "Pressão", "Inferioridade", "Observações"
-]
+# Campos padrão para todos os formulários
+CAMPOS_PADRAO = ["ID", "Nome", "Data", "Observação"]
 
-def formulario_principal(secret, nome_planilha):
-    st.header("Formulário Psicológico")
-    
-    cliente = st.session_state.get("usuario", "")
+# Formulário 1
+def formulario_1(secret, nome_planilha):
+    st.subheader("Formulário 1")
+    cliente_id = st.session_state.get("usuario", "")
+    nome_cliente = st.text_input("Nome do cliente", value=cliente_id)
     data_atual = get_data_atual()
-    
-    raiva = st.radio("Sentiu raiva de alguém?", ["Não", "Sim"])
-    quem = st.text_input("Quem?", "") if raiva == "Sim" else ""
-    
-    pressao = st.radio("Sentiu pressão?", ["Não", "Sim"])
-    inferioridade = st.radio("Sentiu-se inferior?", ["Não", "Sim"])
-    
-    observacoes = st.text_area("Observações")
-    
-    if st.button("Enviar"):
+    observacao = st.text_area("Observação")
+
+    if st.button("Enviar Formulário 1"):
         planilha = conecta_planilha(secret, nome_planilha)
         dados = {
-            "Cliente": cliente,
+            "ID": cliente_id,
+            "Nome": nome_cliente,
             "Data": data_atual,
-            "Raiva": raiva,
-            "Quem": quem,
-            "Pressão": pressao,
-            "Inferioridade": inferioridade,
-            "Observações": observacoes
+            "Observação": observacao
         }
-        salvar_resposta(planilha, "FORMULÁRIO 1", dados, CAMPOS_FORM1)
-        st.success("Resposta enviada com sucesso!")
+        salvar_resposta(planilha, "FORMULÁRIO 1", dados, CAMPOS_PADRAO)
+        st.success("Formulário 1 enviado com sucesso!")
 
-# Aqui você pode adicionar mais formulários, por exemplo:
-def formulario_secundario(secret, nome_planilha):
-    st.header("Formulário Secundário")
-    
-    cliente = st.session_state.get("usuario", "")
+# Formulário 2
+def formulario_2(secret, nome_planilha):
+    st.subheader("Formulário 2")
+    cliente_id = st.session_state.get("usuario", "")
+    nome_cliente = st.text_input("Nome do cliente", value=cliente_id)
     data_atual = get_data_atual()
-    
-    resposta = st.text_input("Digite algo para o formulário secundário:")
-    
-    if st.button("Enviar"):
+    observacao = st.text_area("Observação")
+
+    if st.button("Enviar Formulário 2"):
         planilha = conecta_planilha(secret, nome_planilha)
         dados = {
-            "Cliente": cliente,
+            "ID": cliente_id,
+            "Nome": nome_cliente,
             "Data": data_atual,
-            "Resposta": resposta
+            "Observação": observacao
         }
-        salvar_resposta(planilha, "FORMULÁRIO 2", dados, ["Cliente", "Data", "Resposta"])
-        st.success("Resposta enviada com sucesso!")
+        salvar_resposta(planilha, "FORMULÁRIO 2", dados, CAMPOS_PADRAO)
+        st.success("Formulário 2 enviado com sucesso!")
 
-# Dicionário de formulários
+# Formulário 3
+def formulario_3(secret, nome_planilha):
+    st.subheader("Formulário 3")
+    cliente_id = st.session_state.get("usuario", "")
+    nome_cliente = st.text_input("Nome do cliente", value=cliente_id)
+    data_atual = get_data_atual()
+    observacao = st.text_area("Observação")
+
+    if st.button("Enviar Formulário 3"):
+        planilha = conecta_planilha(secret, nome_planilha)
+        dados = {
+            "ID": cliente_id,
+            "Nome": nome_cliente,
+            "Data": data_atual,
+            "Observação": observacao
+        }
+        salvar_resposta(planilha, "FORMULÁRIO 3", dados, CAMPOS_PADRAO)
+        st.success("Formulário 3 enviado com sucesso!")
+
+# Dicionário de formulários para o app.py
 FORMULARIOS = {
-    "Formulário Psicológico": formulario_principal,
-    "Formulário Secundário": formulario_secundario
+    "Formulário 1": formulario_1,
+    "Formulário 2": formulario_2,
+    "Formulário 3": formulario_3
 }
-
 
