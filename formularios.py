@@ -1,83 +1,52 @@
-# ===============================
-# formularios.py
-# Funções de formulários e área do cliente
-# ===============================
-
 import streamlit as st
-from utils import conectar_planilha, CAMPOS_F1, buscar_resposta
-from datetime import datetime
-
-# Conecta com planilhas
-planilha, _, aba_formularios, aba_acessos = conectar_planilha()
+from utils import data_atual, conecta_planilha, escreve_linha
 
 # ===============================
-# ÁREA DO CLIENTE
+# FUNÇÕES DE FORMULÁRIOS
 # ===============================
 
-def tela_cliente():
-    st.title("👤 Área do Cliente")
-    st.write(f"Bem-vindo, **{st.session_state['usuario']}**")
+CAMPOS = [
+    "Cliente", "Data", "Raiva", "Quem", "Pressão", "QuemPressao",
+    "Inferioridade", "DetalhesInferioridade", "Outros"
+]
 
-    acessos = aba_acessos.get_all_records()
-    formularios = aba_formularios.get_all_records()
+def formulario_psicologico(secret, nome_planilha):
+    """
+    Exibe o formulário psicológico dinâmico e salva no Google Sheets
+    """
+    st.header("Formulário Psicológico")
+    cliente = st.session_state.usuario.get("usuario")
+    data = data_atual()
 
-    ids_liberados = [
-        a.get("formulario_id")
-        for a in acessos
-        if a.get("usuario", "").strip().lower() == st.session_state["usuario"]
-    ]
+    # Campos principais
+    raiva = st.radio("Sente raiva de alguém?", ["Não", "Sim"])
+    quem = st.text_input("Quem?", key="raiva_quem") if raiva == "Sim" else ""
 
-    liberados = [
-        f for f in formularios
-        if f.get("id") in ids_liberados
-        and f.get("ativo", "").strip().lower() == "sim"
-    ]
+    pressao = st.radio("Sente pressão de alguém?", ["Não", "Sim"])
+    quem_pressao = st.text_input("Quem?", key="pressao_quem") if pressao == "Sim" else ""
 
-    st.subheader("📝 Formulários disponíveis")
+    inferioridade = st.radio("Sente inferioridade em alguma situação?", ["Não", "Sim"])
+    detalhes_inferioridade = st.text_area("Detalhes", key="inferioridade_detalhes") if inferioridade == "Sim" else ""
 
-    if not liberados:
-        st.info("Nenhum formulário liberado para você.")
-        return
+    outros = st.text_area("Outros comentários")
 
-    for f in liberados:
-        if st.button(f.get("nome", "Formulário")):
-            st.session_state["formulario_atual"] = f.get("id")
-            st.session_state["pagina"] = "formulario"
+    if st.button("Enviar"):
+        planilha = conecta_planilha(secret, nome_planilha)
+        dados = {
+            "Cliente": cliente,
+            "Data": data,
+            "Raiva": raiva,
+            "Quem": quem,
+            "Pressão": pressao,
+            "QuemPressao": quem_pressao,
+            "Inferioridade": inferioridade,
+            "DetalhesInferioridade": detalhes_inferioridade,
+            "Outros": outros
+        }
+        escreve_linha(planilha, "FORMULÁRIO 1", dados, CAMPOS)
+        st.success("Formulário enviado com sucesso!")
+        # Limpa campos após envio
+        for key in ["raiva_quem", "pressao_quem", "inferioridade_detalhes"]:
+            if key in st.session_state:
+                st.session_state[key] = ""
 
-# ===============================
-# FORMULÁRIO 1
-# ===============================
-
-def tela_formulario_f1():
-    aba = planilha.worksheet("FORMULÁRIO 1")
-
-    st.title("📝 Avaliação Pessoal")
-
-    usuario = st.session_state["usuario"]
-    linha, dados = buscar_resposta(aba, usuario)
-
-    respostas = {campo: "" for campo in CAMPOS_F1}
-    if dados:
-        respostas.update(dados)
-
-    respostas["Cliente"] = usuario
-    respostas["Data"] = datetime.now().strftime("%d/%m/%Y")
-
-    for campo in CAMPOS_F1[2:]:
-        respostas[campo] = st.text_area(campo, respostas.get(campo, ""))
-
-    if st.button("Salvar formulário"):
-
-        if not aba.row_values(1):
-            aba.append_row(CAMPOS_F1)
-
-        valores = [respostas[c] for c in CAMPOS_F1]
-
-        if linha:
-            aba.update(f"A{linha}:AB{linha}", [valores])
-            st.success("Formulário atualizado!")
-        else:
-            aba.append_row(valores)
-            st.success("Formulário enviado!")
-
-        st.session_state["pagina"] = "home"
