@@ -4,12 +4,15 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime
 
 def conecta_planilha(secret, nome_planilha):
-    scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+    """Conecta ao Google Sheets usando o secret e retorna o objeto da planilha."""
+    scopes = ["https://www.googleapis.com/auth/spreadsheets",
+              "https://www.googleapis.com/auth/drive"]
     creds = Credentials.from_service_account_info(secret, scopes=scopes)
     client = gspread.authorize(creds)
     return client.open(nome_planilha)
 
 def salvar_resposta(planilha, aba_nome, dados, campos):
+    """Salva os dados em uma aba da planilha, criando cabeçalho se necessário."""
     try:
         sheet = planilha.worksheet(aba_nome)
     except gspread.WorksheetNotFound:
@@ -24,9 +27,13 @@ def salvar_resposta(planilha, aba_nome, dados, campos):
     sheet.append_row(linha)
 
 def get_data_atual():
+    """Retorna a data atual no formato DD/MM/AAAA."""
     return datetime.now().strftime("%d/%m/%Y")
 
 def normalize_text(texto):
-    return texto.strip().lower()
+    """Normaliza texto para string minúscula sem espaços, tratando None."""
+    if texto is None:
+        return ""
+    return str(texto).strip().lower()
 
 
