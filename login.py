@@ -4,7 +4,7 @@ from utils import conecta_planilha, normalize_text
 
 def autenticar_usuario(secret, nome_planilha, usuario_input, senha_input):
     planilha = conecta_planilha(secret, nome_planilha)
-    aba = planilha.worksheet("usuarios")
+    aba = planilha.worksheet("USUARIOS")
     dados = aba.get_all_records()
     
     usuario_input_norm = normalize_text(usuario_input)
@@ -29,5 +29,6 @@ def login(secret, nome_planilha):
             st.success(f"Bem-vindo, {usuario['usuario']}!")
         else:
             st.error("Usuário ou senha incorretos")
+
 
 
